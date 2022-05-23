@@ -5,22 +5,22 @@ from nltk.stem import WordNetLemmatizer
 import string
 import unidecode
 
-def get_data(df1_dir, df2_dir): #Relative path to each data file
+def get_data():
     #Get data
-    df1 = pd.read_csv(df1_dir)
-    df2 = pd.read_csv(df2_dir)
-    #Drop Columns
-    df1.drop(columns='Unnamed: 0', inplace=True)
-    df2.drop(columns = ['Unnamed: 0', 'index'], inplace = True)
+    df1 = pd.read_csv("data_scientist_skills/raw_data/DataAnalyst.csv")
+    df2 = pd.read_csv("data_scientist_skills/raw_data/DataScientist.csv")
     #Concat to full dataframe
     df = pd.concat([df1, df2], ignore_index=True, axis=0)
-
+    #Drop columns and reformat names
+    df.drop(columns=['Unnamed: 0', 'index', 'Revenue', 'Competitors', 'Easy Apply'], inplace=True)
+    df.columns = [column.replace(' ', '_').lower() for column in df.columns]
     return df
 
 def get_description(df):
     return pd.DataFrame(df['Job Description'])
 
-def clean(description):   # .apply to description or title column
+def clean(description):
+    ''' Function returns cleaned text from one input string, applicable for description columns and/or title column'''
     stop_words = set(stopwords.words('english'))
     # Remove \n
     description = description.replace('\n', ' ')
