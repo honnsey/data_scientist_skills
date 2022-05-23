@@ -17,7 +17,7 @@ def get_data():
     return df
 
 def get_description(df):
-    return pd.DataFrame(df['Job Description'])
+    return pd.DataFrame(df['job_description'])
 
 def clean(description):
     ''' Function returns cleaned text from one input string, applicable for description columns and/or title column'''
@@ -45,5 +45,5 @@ def clean(description):
 
 def get_cleaned_description(dataframe):
     df = get_description(dataframe)
-    df['Cleaned Description'] = df['Job Description'].apply(clean)
-    return pd.DataFrame(df['Cleaned Description'])
+    df['cleaned_description'] = df['job_description'].apply(clean)
+    return pd.DataFrame(df['cleaned_description'])
