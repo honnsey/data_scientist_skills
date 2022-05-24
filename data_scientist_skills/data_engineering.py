@@ -1,7 +1,6 @@
-def confirmed_level_df(df):
-    '''Return dataframe with levels stated in job title.
-    Classification encoded for "junior", "mid-level" and "senior".
-    Encoder applicable for cleaned job title
+def level_encoder(df):
+    '''Encoding levels based on job titles.
+    Return original df plus 3 level-encoded features.
     '''
 
     # define combination of strings to search for each level
@@ -16,12 +15,7 @@ def confirmed_level_df(df):
         df['title',k] = df['cleaned_title'].str.contains(v)
         df['title',k] = df['title',k].apply(lambda x: 1 if x == True else 0)
 
-    # output dataframe with confirmed job titles only
-    output_df = df[(df['title','junior'] == 1) |
-                   (df['title','mid-level'] == 1) |
-                   (df['title','senior'] == 1)]
-
-    return output_df
+    return df
 
 def job_type_encoder(df):
     '''Returns encoding for three streams:
