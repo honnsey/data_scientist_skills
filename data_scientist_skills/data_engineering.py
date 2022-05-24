@@ -21,4 +21,16 @@ def confirmed_level_df(df):
                    (df['title','mid-level'] == 1) |
                    (df['title','senior'] == 1)]
 
-    return output_df
+    return
+
+def job_type_encoder(df):
+    '''Returns encoding for three streams:
+    analyst, engineer and scientist
+    '''
+
+    titles = ['analyst', 'engineer', 'scien']
+
+    for title in titles:
+        df[title] = df['cleaned_title'].str.contains('title')\
+                    .apply(lambda x: 1 if x is True else 0)
+    return df
