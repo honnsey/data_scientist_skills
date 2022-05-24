@@ -14,6 +14,8 @@ def get_data():
     #Drop columns and reformat names
     df.drop(columns=['Unnamed: 0', 'index', 'Revenue', 'Competitors', 'Easy Apply'], inplace=True)
     df.columns = [column.replace(' ', '_').lower() for column in df.columns]
+    df.reset_index(drop=True)
+    df.drop_duplicates()
     return df
 
 def get_description(df):
@@ -44,6 +46,13 @@ def clean(description):
 
 
 def get_cleaned_description(dataframe):
+    """Will return cleaned_description column only"""
     df = get_description(dataframe)
     df['cleaned_description'] = df['job_description'].apply(clean)
     return pd.DataFrame(df['cleaned_description'])
+
+def clean_dataframe(df):
+    """Returns dataframe with clean_description and clean_title columns"""
+    df['cleaned_description'] = df['job_description'].apply(clean)
+    df['cleaned_title'] = df['job_title'].apply(clean)
+    return df
