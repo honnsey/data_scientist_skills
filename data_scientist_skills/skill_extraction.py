@@ -15,8 +15,7 @@ def tdidf(X, min_df=0.1, max_df=0.6, results_df=False):
     tfidf = TfidfVectorizer(ngram_range=(1,2), min_df=min_df, max_df=max_df)
     X_vec = tfidf.fit_transform(X)
     res = pd.DataFrame(X_vec.toarray(), columns = tfidf.get_feature_names_out())
-    pd.options.display.max_rows = 500
-    words = (res.sum().sort_values(ascending=False))
     if results_df:
         return res
+    words = (res.sum().sort_values(ascending=False))
     return words
