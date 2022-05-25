@@ -142,7 +142,7 @@ def label_encoder(df, column):
     try:
         temp_df[column]
     except:
-        raise(Exception("Column isn't found in passed data frame"))
+        raise(Exception(f"{column} isn't found in passed data frame"))
 
     label_enc = LabelEncoder()
     label_enc.fit(temp_df[column])
