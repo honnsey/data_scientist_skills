@@ -1,4 +1,4 @@
-from skills_and_stopwords import all_words_to_remove
+from data_scientist_skills.skills_and_stopwords import all_words_to_remove
 from sklearn.feature_extraction.text import TfidfVectorizer
 import re
 import pandas as pd
