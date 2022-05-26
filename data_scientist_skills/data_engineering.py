@@ -150,6 +150,12 @@ def label_encoder(df, column):
     return temp_df
 
 def impute_empty_sectors(df_with_sector_group):
+    """Intended to impute job listings with empty sector values. Can be done
+    simply by probablity distribution. Next step in complexity would be a regex
+    or similar word matching (RapidFuzz) from words found in company name,
+    description, and job title potentially. Too many choices for now so left
+    empty -JP
+    """
     pass
 
 def one_hot_encode_sector_groups(df, col = 'sector_group', drop = 'first'):
