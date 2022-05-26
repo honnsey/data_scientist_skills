@@ -1,8 +1,10 @@
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+import numpy as np
+from sklearn.impute import KNNImputer
+from data_scientist_skills.skill_extraction import tdidf
 
 
-def level_encoder(df):
+def known_level_encoder(df):
     '''Encoding levels based on job titles.
     Return original df plus 3 level-encoded features.
     '''
@@ -14,24 +16,28 @@ def level_encoder(df):
 
     levels = {'junior': junior, 'senior': senior, 'mid-level': mid}
 
+    tempt_df = pd.DataFrame()
     # Search and encode for level in job title
     for k, v in levels.items():
-        df['title',k] = df['cleaned_title'].str.contains(v)
-        df['title',k] = df['title',k].apply(lambda x: 1 if x == True else 0)
+        tempt_df['title',k] = df['cleaned_title'].str.contains(v)
+        tempt_df['title',k] = tempt_df['title',k].apply(lambda x: 1 if x == True else 0)
 
-    return df
+    return tempt_df
 
 def job_type_encoder(df):
     '''Returns encoding for three streams:
-    analyst, engineer and scientist
+    analyst, engineer and scientist based on job title
     '''
 
     titles = ['analyst', 'engineer', 'scien']
+    tempt_df = pd.DataFrame()
 
+    # Include "encoded" in column name, as keywords extracted from job
+    # description may include words in titles
     for title in titles:
-        df[title] = df['cleaned_title'].str.contains(title)\
+        tempt_df['encoded',title] = df['cleaned_title'].str.contains(title)\
                     .apply(lambda x: 1 if x is True else 0)
-    return df
+    return tempt_df
 
 def process_salary_estimate(dataframe, only_mean = True):
     """Inteprets the salary_estimate string; Returns the mean of the range.
@@ -81,111 +87,94 @@ def process_salary_estimate(dataframe, only_mean = True):
 
     return temp_df
 
+def replace_with_NaN(df):
+    '''Replace unknown job title with NaN.
+    Data prepartion for KNNImputer.
+    Return the entire dataframe with updated values'''
 
-###Sector Encoding Section
+    columns = [('title', 'junior'), ('title', 'senior'), ('title', 'mid-level')]
 
-def make_sector_group_column(df, give_group_profiles = False):
-    """Returns a df with an appended column that has the sector group number.
-    A list of dictionaries with profiles of each group can be gotten by setting
-    give_group_profiles to True.
-    """
-    ## Groups were first made using a standard method of grouping sectors found
-    ## here: https://www.investopedia.com/terms/s/sector.asp
-    ## However this led to unbalanced group sizes so I rearranged them in a way
-    ## hopefully sensible -JP
-    ## Currently they are distributed as follows:
-    ## [308, 713, 671, 674, 1694, 1203]
+    filters = (df['title', 'junior'] == 1)& (df['title', 'senior'] == 0)& (df['title', 'mid-level'] == 0)| \
+            (df['title', 'junior'] == 0)& (df['title', 'senior'] == 1)& (df['title', 'mid-level'] == 0)| \
+            (df['title', 'junior'] == 0)& (df['title', 'senior'] == 0)& (df['title', 'mid-level'] == 1)
 
-    #Can benefit from OOP, groups can be a class object for easy modification.
-    # Further, it would help to untangle the features made ready for model to
-    # make results interpretable for the end user
+    df[columns] = df[columns].where(filters)
+
+    return df
+
+def imputer(df, n_neighbors= 5):
+    '''Impute Nan Values in dataframe
+    Return dataframe with updated values'''
+
+    imputer = KNNImputer(n_neighbors= n_neighbors)
+    X_imputed = imputer.fit_transform(df)
+
+    return pd.DataFrame(X_imputed, columns= df.columns)
+
+def level_encoder_post_impute(df, threshold= 0.7):
+    '''Categorize seniority level based on imputed value (probability)
+    return dataframe with 0 or 1 encoded levels'''
 
     temp_df = df.copy()
-    groups = [
-    ['Mining & Metals', 'Agriculture & Forestry', 'Construction, Repair & Maintenance',
-         'Oil, Gas, Energy & Utilities', 'Manufacturing','Aerospace & Defense','Transportation & Logistics',],
+    columns = [('title', 'junior'), ('title', 'senior')]
+    for column in columns:
+        temp_df[column] = df[column].apply(lambda x: 1 if x >= threshold else 0)
 
-    ['Accounting & Legal', 'Insurance','Finance', ],
-
-    [ 'Telecommunications', 'Media','Real Estate','Travel & Tourism',
-     'Arts, Entertainment & Recreation','Restaurants, Bars & Food Services','Retail',
-     'Non-Profit','Government','Education','Consumer Services',],
-
-    ['Health Care','Biotech & Pharmaceuticals',],
-
-    ['Information Technology',],
-
-    ['Business Services',]
-
-    ]
-
-    #Creates a list with a True value where the sector is found in a group
-    #Its index+1 is then assigned as the value in the new sectuor group column
-    #Those not found (i.e. the -1) are assigned -1 in the new column for easy
-    #filtering during encoding
-    func = lambda sector: [sector in group for group in groups].index(True) + 1\
-                            if any(sector in group for group in groups)\
-                            else -1
-
-    #Applies previous function in mapping to the new sector_group columns
-    temp_df['sector_group']= temp_df.sector.apply(func)
+    mid_level_filter = (df[columns[0]] < threshold) & (df[columns[1]] < threshold)
+    temp_df['title', 'mid-level'] = np.where(mid_level_filter, 1, 0)
 
     return temp_df
 
-def label_encoder(df, column):
-    """Alternative method that utilizes LabelEncoder that does no grouping.
-    Function exits if passed column is not found in dataframe
-    """
-    ### Can benefit from OOP, LabelEncoder has inverse transform, so values can
-    ### be reverted to the human readable text if the fit transfoermer is kept -JP
-    temp_df = df.copy()
-    try:
-        temp_df[column]
-    except:
-        raise(Exception(f"{column} isn't found in passed data frame"))
+def get_position(df):
+    '''
+    Return the Category (level and stream) as a Series
+    Use to visualise dataframe - to compare with unsupervised model results
+    '''
 
-    label_enc = LabelEncoder()
-    label_enc.fit(temp_df[column])
-    temp_df[f'lenc_for_{column}'] = label_enc.transform(temp_df[column])
-    return temp_df
+    levels = [('title', 'junior'), ('title', 'senior'), ('title', 'mid-level')]
+    streams = [('encoded', 'analyst'), ('encoded', 'engineer'), ('encoded', 'scien')]
 
-def impute_empty_sectors(df_with_sector_group):
-    """Intended to impute job listings with empty sector values. Can be done
-    simply by probablity distribution. Next step in complexity would be a regex
-    or similar word matching (RapidFuzz) from words found in company name,
-    description, and job title potentially. Too many choices for now so left
-    empty -JP
-    """
-    pass
+    def get_level(row):
+        '''Return job level: junior, mid-level or senior'''
+        return levels[np.argmax(row.values)][1]
 
-def one_hot_encode_sector_groups(df, col = 'sector_group', drop = 'first'):
-    """OHE a given column, by default the sector_group column.
-    By default the -1 values are not encoded.
-    Set drop to None if the -1 values are to be encoded.
-    """
-    ###Can benefit from OOP, fit model could be kept to inverse transform encoded
-    ###values. Written that the method can be generalized for encoding other columns
-    ### -JP
+    def get_stream(row):
+        '''Return stream: scientist, analyst, engineer'''
+        return streams[np.argmax(row.values)][1]
 
-    temp_df = df.copy()
+    Category = df[streams].apply(get_stream, axis= 1) \
+                        + ' ' \
+                        + df[levels].apply(get_level, axis= 1)
 
-    #Checks that passed column is a column in the df
-    try:
-        temp_df[col]
-    except:
-        raise(Exception(f"'{col}' isn't found in passed data frame"))
+    return Category
 
-    #Creates the encoder
-    ohe = OneHotEncoder(sparse=False, drop = drop)
-    ohe.fit(temp_df[[col]])
+def process_dataframe(df):
+    '''
+    Combine all data processing methods for ease of use.
+    Input dataframe MUST have cleaned job titles and double-cleaned descriptions.
+    Output df = encoded levels & streams + vectorised keywords + category
+    '''
+    # Step 1: encode levels based on job titles
+    known_level_encoded_df = known_level_encoder(df)
 
-    #Creates the names for the encoded columns. The ternary expression keeps -1
-    #if drop is set to None
-    columns = list(ohe.categories_[0][1:]) if drop else list(ohe.categories_[0][:])
-    columns = [f'{col}_{column}' for column in columns]
+    # Step 2: replace 0 with np.nan - prep for imputing
+    pre_impute_df = replace_with_NaN(known_level_encoded_df)
 
-    #Creates encoded columns and values dataframe
-    encoded_df = pd.DataFrame(ohe.transform(temp_df[[col]]), columns = columns)
+    # Step 3: Vectorized job description - return df with vectorised keywords
+    vectorised_desc = tdidf(df.cleaned_description, results_df= True)
 
-    #Joins encoded columns to original dataframe and returns new dataframe
-    return temp_df.join(encoded_df)
+    # Step 4: Impute NaN based on vectorised description
+    temp_df = pd.concat([pre_impute_df,vectorised_desc], axis = 1)
+    imputed_vectorised_df = imputer(temp_df) # output df columns = levels and vectorised kws
+
+    # Step 5: Convert probability of levels to 1(True) or 0(false)
+    encoded_df = level_encoder_post_impute(imputed_vectorised_df)
+
+    # Step 6: merge levels and streams dataframe
+    level_stream_df = pd.concat([job_type_encoder(df),
+                                 encoded_df], axis= 1)
+
+    # Step 7: Return new dataframe
+    return pd.concat([level_stream_df,
+                      get_position(level_stream_df).to_frame(name= "Category")],
+                     axis = 1)

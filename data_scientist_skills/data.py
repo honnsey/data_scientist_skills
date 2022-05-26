@@ -4,6 +4,8 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import string
 import unidecode
+from data_scientist_skills.skill_extraction import remove_more_stopwords
+
 
 def get_data():
     #Get data
@@ -54,5 +56,6 @@ def get_cleaned_description(dataframe):
 def clean_dataframe(df):
     """Returns dataframe with clean_description and clean_title columns"""
     df['cleaned_description'] = df['job_description'].apply(clean)
+    df.cleaned_description = df.cleaned_description.apply(remove_more_stopwords)
     df['cleaned_title'] = df['job_title'].apply(clean)
     return df
