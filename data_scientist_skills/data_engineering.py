@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.impute import KNNImputer
 from data_scientist_skills.skill_extraction import tdidf
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 
 def known_level_encoder(df):
@@ -178,3 +179,124 @@ def process_dataframe(df):
     return pd.concat([level_stream_df,
                       get_position(level_stream_df).to_frame(name= "Category")],
                      axis = 1)
+
+###Sector Encoding Section
+# As currently written, these methods do no drop the original encoded column
+
+def make_sector_group_column(df, give_group_profiles = False):
+    """Returns a df with an appended column that has the sector group number.
+    --Unimplemented--
+    A list of dictionaries with profiles of each group can be gotten by setting
+    give_group_profiles to True.
+    """
+    ## Groups were first made using a standard method of grouping sectors found
+    ## here: https://www.investopedia.com/terms/s/sector.asp
+    ## However this led to unbalanced group sizes so I rearranged them in a way
+    ## hopefully sensible -JP
+    ## Currently they are distributed as follows:
+    ## [308, 713, 671, 674, 1694, 1203]
+
+    #Can benefit from OOP, groups can be a class object for easy modification.
+    # Further, it would help to untangle the features made ready for model to
+    # make results interpretable for the end user
+
+    temp_df = df.copy()
+    groups = [
+    ['Mining & Metals', 'Agriculture & Forestry', 'Transportation & Logistics',
+     'Construction, Repair & Maintenance', 'Oil, Gas, Energy & Utilities',
+     'Manufacturing', 'Aerospace & Defense',],
+
+    ['Accounting & Legal', 'Insurance','Finance', ],
+
+    [ 'Telecommunications', 'Media', 'Real Estate', 'Travel & Tourism',
+     'Arts, Entertainment & Recreation','Restaurants, Bars & Food Services',
+     'Retail', 'Non-Profit','Government','Education','Consumer Services',],
+
+    ['Health Care','Biotech & Pharmaceuticals',],
+
+    ['Information Technology',],
+
+    ['Business Services',]
+
+    ]
+
+    #Creates a list with a True value where the sector is found in a group
+    #Its index+1 is then assigned as the value in the new sector_group column
+    #Those not found (i.e. the -1) are assigned -1 in the new column for easy
+    #filtering during encoding
+    func = lambda sector: [sector in group for group in groups].index(True) + 1\
+                            if any(sector in group for group in groups)\
+                            else -1
+
+    #Applies previous function in mapping to the new sector_group columns
+    temp_df['sector_group']= temp_df.sector.apply(func)
+
+    return temp_df
+
+def label_encoder(df, column):
+    """Alternative method that utilizes LabelEncoder that does no grouping.
+    Function exits if passed column is not found in dataframe
+    """
+    ### Can benefit from OOP, LabelEncoder has inverse transform, so values can
+    ### be reverted to the human readable text if the fit transfoermer is kept -JP
+
+    temp_df = df.copy()
+
+    #Checks that passed column is a column in the df
+    try:
+        temp_df[column]
+    except:
+        raise(Exception(f"{column} isn't found in passed data frame"))
+
+    #Creates and fits label encoder
+    label_enc = LabelEncoder()
+    label_enc.fit(temp_df[column])
+
+    #Label encodes passed column into a new column
+    temp_df[f'lenc_{column}'] = label_enc.transform(temp_df[column])
+
+    return temp_df
+
+def impute_empty_sectors(df_with_sector_group = ''):
+    """Intended to impute job listings with empty sector values. Can be done
+    simply by probablity distribution. Next step in complexity would be a regex
+    or similar word matching (RapidFuzz) from words found in company name,
+    description, and job title potentially. Too many choices for now so left
+    empty -JP
+    """
+    pass
+
+def one_hot_encode_sector_groups(df, col = 'sector_group', drop = 'first'):
+    """OHE a given column, by default the sector_group column.
+    By default the -1 values are not encoded.
+    Set drop to None if the -1 values are to be encoded.
+    OHE drop works consistently for numericals, beware/set drop to None if
+    values are non-numerical or the column lacks null -1
+    """
+    ###Can benefit from OOP, fit model could be kept to inverse transform encoded
+    ###values. Written that the method can be generalized for encoding other columns
+    ###Further this could be generalized again to handle multiple column encodings
+    ### -JP
+
+    temp_df = df.copy()
+
+    #Checks that passed column is a column in the df
+    try:
+        temp_df[col]
+    except:
+        raise(Exception(f"'{col}' isn't found in passed data frame"))
+
+    #Creates and fits the encoder
+    ohe = OneHotEncoder(sparse=False, drop = drop)
+    ohe.fit(temp_df[[col]])
+
+    #Creates the names for the encoded columns. The ternary expression keeps
+    #the first value (i.e. -1) if drop is set to None
+    columns = list(ohe.categories_[0][1:]) if drop else list(ohe.categories_[0][:])
+    columns = [f'{col}_{column}' for column in columns]
+
+    #Creates encoded columns and values dataframe
+    encoded_df = pd.DataFrame(ohe.transform(temp_df[[col]]), columns = columns)
+
+    #Joins encoded columns to original dataframe and returns new dataframe
+    return temp_df.join(encoded_df)
