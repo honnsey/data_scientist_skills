@@ -7,8 +7,8 @@ import unidecode
 
 def get_data():
     #Get data
-    df1 = pd.read_csv("data_scientist_skills/raw_data/DataAnalyst.csv")
-    df2 = pd.read_csv("data_scientist_skills/raw_data/DataScientist.csv")
+    df1 = pd.read_csv("../raw_data/DataAnalyst.csv")
+    df2 = pd.read_csv("../raw_data/DataScientist.csv")
     #Concat to full dataframe
     df = pd.concat([df1, df2], ignore_index=True, axis=0)
     #Drop columns and reformat names
