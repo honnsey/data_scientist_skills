@@ -3,14 +3,18 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import string
-import unidecode
+import unidecode  #This import us unused do we need to have this? -JP
 from data_scientist_skills.skill_extraction import remove_more_stopwords
+
+from pathlib import Path
+from os import getcwd
 
 
 def get_data():
     #Get data
-    df1 = pd.read_csv("../raw_data/DataAnalyst.csv")
-    df2 = pd.read_csv("../raw_data/DataScientist.csv")
+    ###removing ../ allows terminal command 'make run_locally' to work -JP
+    df1 = pd.read_csv("raw_data/DataAnalyst.csv")
+    df2 = pd.read_csv("raw_data/DataScientist.csv")
     #Concat to full dataframe
     df = pd.concat([df1, df2], ignore_index=True, axis=0)
     #Drop columns and reformat names
