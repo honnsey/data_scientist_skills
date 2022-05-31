@@ -59,20 +59,18 @@ pypi:
 #				GCP information
 #--------------------------------------------
 PROJECT_ID = lewagon-859
-REGION = ASIA
+# REGION = ASIA #for some reason it won't run on ASIA
+REGION = europe-west1
 BUCKET_NAME=skills_for_a_data_scientist
-# BUCKET_FILE_NAME=$(shell basename ${LOCAL_PATH}) #Is there something I can do here so LOCAL_PATH can be dynamic?
-# Is this where I learn flags so that I can just have one 'function' definition?
 
 #For uploading package
 BUCKET_FOLDER=package
 PACKAGE_LOCAL_PATH = "data_scientist_skills"
 PACKAGE_BUCKET_FILE_NAME=$(shell basename ${PACKAGE_LOCAL_PATH})
 
-#Put in with package that get_data() file path works, # DATA_BUCKET_FOLDER=data
+#Put in with package that get_data() file path works
 DATA_LOCAL_PATH = "raw_data"
 DATA_BUCKET_FILE_NAME=$(shell basename ${DATA_LOCAL_PATH})
-
 
 ####Project sectup on GCP --------------------------------
 set_project:
@@ -91,7 +89,6 @@ upload_data:
 ####Project sectup on GCP ~CLOSE -------------------------
 
 
-
 ##Training
 # will store the packages uploaded to GCP for the training
 BUCKET_TRAINING_FOLDER = 'trainings'
@@ -99,8 +96,8 @@ BUCKET_TRAINING_FOLDER = 'trainings'
 
 ##GCP AI Platform
 #Machine configuration
-PYTHON_VERSION=3.7 #why does 3.8 cause issues? related to runtime_version
-FRAMEWORK=scikit-learn #This might need changing for our model
+PYTHON_VERSION=3.7 #why does 3.8 cause issues? related to runtime_version # can ignore acc. Alec
+FRAMEWORK=scikit-learn #This needs changing depending on model used
 RUNTIME_VERSION=2.2
 
 
@@ -113,19 +110,20 @@ FILENAME=trainer
 JOB_NAME=data_scientist_skills_pipeline_$(shell date +'%Y%m%d_%H%M%S')
 
 
-#Runs trainer.py (i.e. creats joblib)
+#Runs trainer.py (i.e. creates joblib)
+### if __name__ == '__main__' lets trainer.py be run when called directly
+
 run_locally:
 	@python -m ${PACKAGE_NAME}.${FILENAME}
 
-###When would it stop? -Defined in trainer.py
-### if __name__ == '__main__' lets trainer.py be run when called directly
-### python-version might be excludable/not needed
-gcp_submit_training:
-	gcloud ai-platform jobs submit training ${JOB_NAME} \
-		--job-dir gs://${BUCKET_NAME}/${BUCKET_TRAINING_FOLDER} \
-		--package-path ${PACKAGE_NAME} \
-		--module-name ${PACKAGE_NAME}.${FILENAME} \
-		--python-version=${PYTHON_VERSION} \
-		--runtime-version=${RUNTIME_VERSION} \
-		--region ${REGION} \
-		--stream-logs
+
+#requirements.txt needs to be updated, failing certain imports
+# gcp_submit_training:
+# 	gcloud ai-platform jobs submit training ${JOB_NAME} \
+# 		--job-dir gs://${BUCKET_NAME}/${BUCKET_TRAINING_FOLDER} \
+# 		--package-path ${PACKAGE_NAME} \
+# 		--module-name ${PACKAGE_NAME}.${FILENAME} \
+# 		--python-version=${PYTHON_VERSION} \
+# 		--runtime-version=${RUNTIME_VERSION} \
+# 		--region ${REGION} \
+# 		--stream-logs
