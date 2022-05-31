@@ -1,18 +1,19 @@
-from pydoc import cli #where is thi sfrom and to do what?
 from fastapi import FastAPI
+import joblib
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
-from typing import Union #explain this
-from enum import Enum #explain this
+from pydantic import BaseModel
+from typing import Union
+from enum import Enum
 
 class Applicant(BaseModel):
     possessed_skills: Union[str, None] = None
     salary_mean_offer: Union[float, None] = None
     years_of_experience: Union[float, None] = None
 
+#Class for the Job classification model page
 class Description(BaseModel):
-    description: Union[str, None] = Field(None, title = "Your job post description", max_length = 4000)
-    mean_salary: Union[float, None] = 0
+    description: str
+    # mean_salary: Union[float, None] = 0
 
 class ModelName(str, Enum):
     description_to_job = "job_model"
@@ -30,10 +31,23 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+#Dummy test for a greeting
 @app.get("/")
 def index():
     return {"greeting": "Hello world"}
 
+#Invokes the model.
+@app.post("/models/job_model")
+def take_job_desc(desc : Description):
+
+    pipeline = joblib.load('model.joblib')
+
+    # make prediction
+    results = pipeline.predict(desc.description)
+
+    return {"job level" : results}
+
+#For if there are multiple models to post from
 @app.get("/models/{model_name}") ### can we use fastapi.HTTPException for missing models?
 def get_model(model_name : ModelName): ###here https://fastapi.tiangolo.com/tutorial/path-params/ they type the param as a ModelName object, but then it breaks on nonexistent calls? Is that better or having some default page?
     if model_name == ModelName.description_to_job:
@@ -43,20 +57,3 @@ def get_model(model_name : ModelName): ###here https://fastapi.tiangolo.com/tuto
     if model_name == ModelName.salary_offer_estimator:
         return {"model_name": model_name, "message": "This is the expected salary for that description"}
     return {"model_name": model_name, "message": "This isn't a defined model"}
-
-client_description_request = Description()
-#async?
-@app.post("/models/job_model")
-def take_job_desc(desc : Description):
-    ###Here is where the post input get's turned into our model's output
-    # user_input = [stream]
-    # res = model(user_input)
-    # interpretation = interpret_results(res)
-    # return interpretation
-    # return {"job level" : model.predict(desc)}
-    client_description_request.description = desc
-    return dict(job_level= desc)
-
-@app.get("/models/job_model/job_results")
-def present_job_results():
-    return {"job level" : f"{client_description_request.description}, I was added in the present function"}
