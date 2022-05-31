@@ -60,4 +60,4 @@ if __name__ == '__main__':
     # step done in Model instantiation
 
     # save trained model to GCP bucket (whether the training occured locally or on GCP)
-    save_model(inst_model.model)
+    save_model(inst_model)
