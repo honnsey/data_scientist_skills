@@ -59,10 +59,13 @@ def years_experience(string):
     If none found, return NaN.
     '''
     pattern = r"\d{1,2}(?=.{0,5}? years?.{0,3}? experience)"
-    experience = re.findall(pattern, string)
+    experience = re.findall(pattern, string) # return a list of matching numbers found based on expression
+
+    # remove number of years greater than 15 - non-sensical values
+    experience = [_ for _ in experience if int(_) <= 15]
     if experience == []:
         return np.nan
-    return max(experience)
+    return int(max(experience))
 
 def get_cleaned_description(dataframe):
     """Will return cleaned_description column only"""
