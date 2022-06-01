@@ -1,0 +1,6 @@
+#Ignoring notebooks and web directories, .ipynb, and .md except the Readme
+notebooks
+web
+*.ipynb
+*.md
+!README.md
