@@ -28,12 +28,12 @@ def prep_input():
     cols_to_keep = list(np.where(bin_skills_df.sum().values > appearance_threshold)[0])
     return bin_skills_df.iloc[:, cols_to_keep], cleaned_df
 
-class recommend_jobs():
+class Recommend_Jobs():
     ## X = skills of interest
     def __init__(self):
         self.X, self.df = prep_input()
         self.model = NearestNeighbors().fit(self.X)
-
+        self.nickname = "jobs_rec"
 
     def predict(self, input):
         user_skills_df = pd.DataFrame(input)

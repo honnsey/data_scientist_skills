@@ -49,6 +49,7 @@ class Model:
     def __init__(self):
         self.model = model_prep()
         self.vectorizer = init_vectorizer()
+        self.nickname = "desc_class"
 
     def prep_input(self, input):
         """Vectorizes the input for use in prediction"""
