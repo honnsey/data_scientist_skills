@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
-import joblib
 from data_scientist_skills.data import clean_dataframe, get_data
 from data_scientist_skills.data_engineering import process_dataframe
 
