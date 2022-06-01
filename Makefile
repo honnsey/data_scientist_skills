@@ -154,6 +154,8 @@ docker_api_deploy:
 	gcloud run deploy --image ${API_IMAGE_NAME} --platform managed --region europe-west1
 
 #------------ Web ------------
+### As the web package is not in the home directory, this command runs the
+### dockerfile from within that directory then returns to the main directory
 docker_web_build:
 	cd web
 	docker build -t ${WEB_IMAGE_NAME} .
