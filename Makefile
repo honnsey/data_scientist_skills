@@ -96,7 +96,7 @@ BUCKET_TRAINING_FOLDER = 'trainings'
 
 ##GCP AI Platform
 #Machine configuration
-PYTHON_VERSION=3.7 #why does 3.8 cause issues? related to runtime_version # can ignore acc. Alec
+PYTHON_VERSION=3.7 #why does 3.8 cause issues? related to runtime_version ### can ignore acc. Alec
 FRAMEWORK=scikit-learn #This needs changing depending on model used
 RUNTIME_VERSION=2.2
 
@@ -110,8 +110,8 @@ FILENAME=trainer
 JOB_NAME=data_scientist_skills_pipeline_$(shell date +'%Y%m%d_%H%M%S')
 
 
-#Runs trainer.py (i.e. creates joblib)
-### if __name__ == '__main__' lets trainer.py be run when called directly
+###Runs trainer.py (i.e. creates joblib)
+### the "if __name__ == '__main__'" lets trainer.py be run when called directly
 
 run_locally:
 	@python -m ${PACKAGE_NAME}.${FILENAME}
@@ -129,6 +129,49 @@ run_locally:
 # 		--stream-logs
 
 
+# ----------------------------------
+#      DOCKER IMAGES
+# ----------------------------------
+
+PACKAGE_NAME_ALIAS=dss
+API_IMAGE_NAME=eu.gcr.io/${PROJECT_ID}/${PACKAGE_NAME_ALIAS}_api
+WEB_IMAGE_NAME=eu.gcr.io/${PROJECT_ID}/${PACKAGE_NAME_ALIAS}_web
+
+### Build & Deploy Docker images
+### ***Confirm Docker is launched or else the commands will fail***
+
+#------------ Api ------------
+### Confirm the .dockerignore has the web and notebooks directories set to ignore
+docker_api_build:
+	docker build -t ${API_IMAGE_NAME} .
+	@echo "You should see ${API_IMAGE_NAME} in your docker images"
+	@docker images
+
+docker_api_deploy:
+	docker push ${API_IMAGE_NAME}
+	@echo "Check this link to confirm image is pushed: https://console.cloud.google.com/gcr/"
+	@echo "If this is first deployment, press enter to let the service have the default name, enter 'y' to continue"
+	gcloud run deploy --image ${API_IMAGE_NAME} --platform managed --region europe-west1
+
+#------------ Web ------------
+docker_web_build:
+	cd web
+	docker build -t ${WEB_IMAGE_NAME} .
+	cd -
+	@echo "You should see ${WEB_IMAGE_NAME} in your docker images"
+	@docker images
+
+docker_web_deploy:
+	docker push ${WEB_IMAGE_NAME}
+	@echo "Check this link to confirm image is pushed: https://console.cloud.google.com/gcr/"
+	@echo "If this is first deployment, press enter to let the service have the default name, enter 'y' to continue"
+	gcloud run deploy --image ${WEB_IMAGE_NAME} --platform managed --region europe-west1
+
+
+
+#make commands for for testing
+#docker_run_{api/web}:
+#	docker run -e PORT=8000 -p 8000:8000 ${{WEB/API}_IMAGE_NAME}
 
 ### Run Api ---------------------------------------
 run_api:
