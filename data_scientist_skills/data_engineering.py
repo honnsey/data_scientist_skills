@@ -4,10 +4,11 @@ from sklearn.impute import KNNImputer
 from data_scientist_skills.skill_extraction import tdidf
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
-
 def known_level_encoder(df):
-    '''Encoding levels based on job titles.
-    Return original df plus 3 level-encoded features.
+    '''
+    Encoding levels based on job titles or required years of experience.
+    Job title takes precedence.
+    Return a dataframe of 3 level-encoded features.
     '''
 
     # define combination of strings to search for each level
@@ -17,13 +18,25 @@ def known_level_encoder(df):
 
     levels = {'junior': junior, 'senior': senior, 'mid-level': mid}
 
-    tempt_df = pd.DataFrame()
+    temp = df.copy()
     # Search and encode for level in job title
     for k, v in levels.items():
-        tempt_df['title',k] = df['cleaned_title'].str.contains(v)
-        tempt_df['title',k] = tempt_df['title',k].apply(lambda x: 1 if x == True else 0)
+        temp['title',k] = temp['cleaned_title'].str.contains(v)
+        temp['title',k] = temp['title',k].apply(lambda x: 1 if x == True else 0)
 
-    return tempt_df
+    # Search through years of experience
+    title_columns = [('title', level) for level in levels.keys()]
+
+    condition = (temp[title_columns[0]] == 0) & \
+                (temp[title_columns[1]] == 0) & \
+                (temp[title_columns[2]] == 0) & \
+                (temp['experience'].notnull())
+
+    temp[title_columns[0]][condition] = temp['experience'][condition].apply(lambda x: 1 if x <=  2 else 0)
+    temp[title_columns[1]][condition] = temp['experience'][condition].apply(lambda x: 1 if x > 4 else 0)
+    temp[title_columns[2]][condition] = temp['experience'][condition].apply(lambda x: 1 if x in range(3,5) else 0)
+
+    return temp.iloc[:,-3:]
 
 def job_type_encoder(df):
     '''Returns encoding for three streams:
