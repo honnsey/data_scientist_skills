@@ -35,7 +35,7 @@ def known_level_encoder(df):
     temp[title_columns[1]][condition] = temp['experience'][condition].apply(lambda x: 1 if x > 4 else 0)
     temp[title_columns[2]][condition] = temp['experience'][condition].apply(lambda x: 1 if x in range(3,5) else 0)
 
-    return temp
+    return temp.iloc[:,-3:]
 
 def job_type_encoder(df):
     '''Returns encoding for three streams:
