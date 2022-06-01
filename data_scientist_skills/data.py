@@ -1,4 +1,6 @@
 import pandas as pd
+import numpy as np
+import re
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
@@ -50,6 +52,20 @@ def clean(description):
     cleaned_sentence = ' '.join(word for word in lemmatized_description)
     return cleaned_sentence
 
+def years_experience(string):
+    '''
+    Extract number of years of experience required in a job description.
+    If multiple requirements present in a description, return maximum value.
+    If none found, return NaN.
+    '''
+    pattern = r"\d{1,2}(?=.{0,5}? years?.{0,3}? experience)"
+    experience = re.findall(pattern, string) # return a list of matching numbers found based on expression
+
+    # remove number of years greater than 15 - non-sensical values
+    experience = [_ for _ in experience if int(_) <= 15]
+    if experience == []:
+        return np.nan
+    return int(max(experience))
 
 def get_cleaned_description(dataframe):
     """Will return cleaned_description column only"""
@@ -59,6 +75,8 @@ def get_cleaned_description(dataframe):
 
 def clean_dataframe(df):
     """Returns dataframe with clean_description and clean_title columns"""
+    # Create new column for years of experience extracted from raw job description
+    df['experience'] = df['job_description'].apply(years_experience)
     df['cleaned_description'] = df['job_description'].apply(clean)
     df.cleaned_description = df.cleaned_description.apply(remove_more_stopwords)
     df['cleaned_title'] = df['job_title'].apply(clean)
