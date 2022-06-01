@@ -127,3 +127,9 @@ run_locally:
 # 		--runtime-version=${RUNTIME_VERSION} \
 # 		--region ${REGION} \
 # 		--stream-logs
+
+
+
+### Run Api ---------------------------------------
+run_api:
+	uvicorn api.fast:app --reload  # load web server with code autoreload
