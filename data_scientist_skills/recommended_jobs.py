@@ -26,7 +26,7 @@ def prep_input():
 
     # filter dataframe down to only include skill of interest
     cols_to_keep = list(np.where(bin_skills_df.sum().values > appearance_threshold)[0])
-    return bin_skills_df.iloc[:, cols_to_keep], cleaned_df
+    return bin_skills_df.iloc[:, cols_to_keep], clean_df
 
 class Recommend_Jobs():
     ## X = skills of interest
