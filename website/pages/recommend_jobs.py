@@ -9,7 +9,7 @@ def app():
 
     st.write('''We can provide you with a number of jobs that are best suited to your skills.
              Please tell us a bit about yourself and your experience!''')
-    st.write('''Please tick the boxes below to describe your skills''')
+    st.write('''Please tick the boxes below to describe your skills.''')
 
     # List of skills
     skill_list = ['Excellent Communication Skills', 'create', 'Data Analysis', 'develop',
@@ -35,9 +35,10 @@ def app():
 
     st.slider('Years of Experience in Data Science',1, 20, 5)
 
-    st.checkbox("Happy with your descriptions above?")
+    if st.checkbox("Happy with your descriptions above?"):
+        if sum(input_collector.values()) > 0:
+            st.success('Below are the top 5 jobs that we recommend you to apply!')
+                ## display dataframe of recommended jobs below
 
-    # if happy then send the input to model.predict to return a dataframe of recommended jobs
-    st.success('Below are the top 5 jobs that we recommend you to apply!')
-
-    ## display dataframe of recommended jobs below
+        else:
+            st.info('Would you be interested in some data science courses to improve your skill set?')
