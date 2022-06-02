@@ -8,6 +8,6 @@ COPY desc_class_model.joblib /desc_class_model.joblib
 COPY jobs_rec_model.joblib /jobs_rec_model.joblib
 
 RUN pip install -r requirements.txt
-RUN python -c "import nltk; nltk.download('stopwords')"
+# RUN python -c "import nltk; nltk.download('stopwords')"
 
 CMD uvicorn api.fast:app --host 0.0.0.0 --port $PORT
