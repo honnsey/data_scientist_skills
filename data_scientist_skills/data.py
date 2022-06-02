@@ -5,7 +5,7 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import string
-import unidecode  #This import us unused do we need to have this? -JP
+import unidecode  #This import is unused do we need to have this? -JP
 from data_scientist_skills.skill_extraction import remove_more_stopwords
 
 from pathlib import Path

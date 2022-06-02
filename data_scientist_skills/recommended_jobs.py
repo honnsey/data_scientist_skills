@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
-import joblib
 from data_scientist_skills.data import clean_dataframe, get_data
 from data_scientist_skills.data_engineering import process_dataframe
 
@@ -26,14 +25,14 @@ def prep_input():
 
     # filter dataframe down to only include skill of interest
     cols_to_keep = list(np.where(bin_skills_df.sum().values > appearance_threshold)[0])
-    return bin_skills_df.iloc[:, cols_to_keep], cleaned_df
+    return bin_skills_df.iloc[:, cols_to_keep], clean_df
 
-class recommend_jobs():
+class Recommend_Jobs():
     ## X = skills of interest
     def __init__(self):
         self.X, self.df = prep_input()
         self.model = NearestNeighbors().fit(self.X)
-
+        self.nickname = "jobs_rec"
 
     def predict(self, input):
         user_skills_df = pd.DataFrame(input)

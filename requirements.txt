@@ -35,3 +35,4 @@ memoized-property
 termcolor
 uvicorn
 google
+streamlit
