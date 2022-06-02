@@ -16,4 +16,9 @@ def app():
 
              We have thousands of job listings available, so have a look!
              ''')
-    st.write(get_cached_data().iloc[:,:3])
+    ['job_title', 'salary_estimate', 'job_description', 'rating',
+       'company_name', 'location', 'headquarters', 'size', 'founded',
+       'type_of_ownership', 'industry', 'sector', 'cleaned_description',
+       'cleaned_title']
+    st.dataframe(get_cached_data()[['job_title','company_name','location','industry','job_description'
+                                    ]])
