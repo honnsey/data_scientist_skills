@@ -172,8 +172,8 @@ docker_web_deploy:
 
 
 #make commands for for testing
-#docker_run_{api/web}:
-#	docker run -e PORT=8000 -p 8000:8000 ${{WEB/API}_IMAGE_NAME}
+docker_test_api:
+	docker run -e PORT=8000 -p 8000:8000 ${API_IMAGE_NAME}
 
 ### Run Api ---------------------------------------
 run_api:
