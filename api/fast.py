@@ -1,9 +1,12 @@
 from fastapi import FastAPI
 import joblib
+import nltk
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Union
 from enum import Enum
+
+nltk.download('stopwords')
 
 ### If the jobs recommender is loaded outside of the get call, this
 ### model can have its skills attribute match the columns of the
